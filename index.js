@@ -62,13 +62,12 @@ const client = new MongoClient(uri, {
 async function run() {
 
     try {
-        // Connect the client to the server	(optional starting in v4.7)
-        // client.connect((error) => {
-        //     if (error) {
-        //         console.error(error);
-        //         return;
-        //     }
-        // });
+        client.connect((error) => {
+            if (error) {
+                console.error(error);
+                return;
+            }
+        });
 
 
         //classes collection
@@ -263,28 +262,29 @@ async function run() {
             res.send(result)
         })
 
-        // selected item delete
+         // selected item delete
 
-        app.delete('/selected/:id', async (req, res) => {
+         app.delete('/selected/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await selectedCollection.deleteOne(query);
             res.send(result)
         })
 
-       /// create payment intent
-app.post("/create-payment-intent", async (req, res) => {
-    const { price } = req.body;
-    const money = price * 100;
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: money,
-      currency: "usd",
-      payment_method_types: ["card"],
-    });
-    res.send({
-      clientSecret: paymentIntent.client_secret,
-    });
-  });
+
+        /// create payment intent
+        app.post("/create-payment-intent", async (req, res) => {
+            const { price } = req.body;
+            const money = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: money,
+                currency: "usd",
+                payment_method_types: ["card"],
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
 
 
         /// POST payment create
@@ -308,8 +308,11 @@ app.post("/create-payment-intent", async (req, res) => {
         });
 
         /// Get students successful payment data
-        app.get("/payments", async (req, res) => {
-            const result = await paymentCollection.find().toArray();
+        app.get("/payments/:email", async (req, res) => {
+
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await paymentCollection.find(query).toArray();
             res.send(result);
         });
 
